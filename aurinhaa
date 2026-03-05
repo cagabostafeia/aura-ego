@@ -1,10 +1,11 @@
 local Config = _G.ApolloConfig
+local LogoID = "rbxassetid://72204085073245" -- Logo fixa aqui no Core
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- [[ OTIMIZAÇÃO (MODO BATATA) ]]
+-- OTIMIZAÇÃO (MODO BATATA)
 settings():GetService("RenderSettings").QualityLevel = 1
 local Terrain = game:GetService("Workspace"):FindFirstChildOfClass("Terrain")
 if Terrain then Terrain.WaterWaveSize = 0; Terrain.WaterReflectivity = 0 end
@@ -18,7 +19,7 @@ end
 game:GetService("Lighting").GlobalShadows = false
 game:GetService("Lighting").FogEnd = 9e9
 
--- [[ UI E LOGO ]]
+-- UI E LOGO FIXA
 local function createApolloUI()
     if game.CoreGui:FindFirstChild("ApolloHubUI") then game.CoreGui.ApolloHubUI:Destroy() end
     local sg = Instance.new("ScreenGui", game.CoreGui)
@@ -31,12 +32,12 @@ local function createApolloUI()
     local logo = Instance.new("ImageLabel", frame)
     logo.Size = UDim2.new(0, 200, 0, 130)
     logo.Position = UDim2.new(0.5, -100, 0, 15)
-    logo.Image = Config.LogoID
+    logo.Image = LogoID -- Logo vindo direto do Core
     logo.BackgroundTransparency = 1
     logo.ScaleType = Enum.ScaleType.Fit
 end
 
--- [[ LÓGICA DE COMBATE ]]
+-- LÓGICA DE COMBATE
 task.spawn(function()
     while true do task.wait(Config.AttackSpeed)
         if LocalPlayer.Name == Config.MainAccount then
@@ -53,7 +54,7 @@ task.spawn(function()
     end
 end)
 
--- [[ TP E AUTO-RESET ]]
+-- TP E AUTO-RESET
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
