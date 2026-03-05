@@ -1,0 +1,79 @@
+local Config = _G.ApolloConfig
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- [[ OTIMIZAÇÃO (MODO BATATA) ]]
+settings():GetService("RenderSettings").QualityLevel = 1
+local Terrain = game:GetService("Workspace"):FindFirstChildOfClass("Terrain")
+if Terrain then Terrain.WaterWaveSize = 0; Terrain.WaterReflectivity = 0 end
+for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
+    if v:IsA("BasePart") or v:IsA("MeshPart") then 
+        v.Material = "Plastic"; v.Reflectance = 0 
+    elseif v:IsA("Decal") and v.Name ~= "Apollo_System_Zone" then 
+        v:Destroy() 
+    end
+end
+game:GetService("Lighting").GlobalShadows = false
+game:GetService("Lighting").FogEnd = 9e9
+
+-- [[ UI E LOGO ]]
+local function createApolloUI()
+    if game.CoreGui:FindFirstChild("ApolloHubUI") then game.CoreGui.ApolloHubUI:Destroy() end
+    local sg = Instance.new("ScreenGui", game.CoreGui)
+    sg.Name = "ApolloHubUI"
+    local frame = Instance.new("Frame", sg)
+    frame.Size = UDim2.new(0, 240, 0, 160)
+    frame.Position = UDim2.new(0, 20, 0.5, -80)
+    frame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+    local logo = Instance.new("ImageLabel", frame)
+    logo.Size = UDim2.new(0, 200, 0, 130)
+    logo.Position = UDim2.new(0.5, -100, 0, 15)
+    logo.Image = Config.LogoID
+    logo.BackgroundTransparency = 1
+    logo.ScaleType = Enum.ScaleType.Fit
+end
+
+-- [[ LÓGICA DE COMBATE ]]
+task.spawn(function()
+    while true do task.wait(Config.AttackSpeed)
+        if LocalPlayer.Name == Config.MainAccount then
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("Communicate") then
+                char.Communicate:FireServer({["Goal"] = "LeftClick"})
+                for _, key in ipairs({Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three}) do
+                    VirtualInputManager:SendKeyEvent(true, key, false, game)
+                    task.wait(0.01)
+                    VirtualInputManager:SendKeyEvent(false, key, false, game)
+                end
+            end
+        end
+    end
+end)
+
+-- [[ TP E AUTO-RESET ]]
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if root and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+        if LocalPlayer.Name == Config.MainAccount then
+            root.CFrame = CFrame.new(Config.BoxPosition + Vector3.new(0, 5, 0))
+        elseif LocalPlayer.Name == Config.AltAccount then
+            local mainP = Players:FindFirstChild(Config.MainAccount)
+            if mainP and mainP.Character and mainP.Character:FindFirstChild("HumanoidRootPart") then
+                root.CFrame = mainP.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3.5)
+                if Config.AltAutoReset then
+                    local dist = (root.Position - Config.BoxPosition).Magnitude
+                    if dist < 30 then
+                        task.wait(Config.ResetDelay)
+                        char.Humanoid.Health = 0
+                    end
+                end
+            end
+        end
+    end
+end)
+
+createApolloUI()
