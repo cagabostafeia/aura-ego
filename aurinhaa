@@ -1,14 +1,17 @@
 local Config = _G.ApolloConfig
-local LogoID = "rbxassetid://72204085073245" -- Logo fixa aqui no Core
+local LogoID = "rbxassetid://72204085073245"
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- OTIMIZAÇÃO (MODO BATATA)
+-- [[ OTIMIZAÇÃO CORRIGIDA ]]
 settings():GetService("RenderSettings").QualityLevel = 1
 local Terrain = game:GetService("Workspace"):FindFirstChildOfClass("Terrain")
-if Terrain then Terrain.WaterWaveSize = 0; Terrain.WaterReflectivity = 0 end
+if Terrain then 
+    Terrain.WaterWaveSize = 0 
+    -- Removido WaterReflectivity pois causa erro
+end
 for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
     if v:IsA("BasePart") or v:IsA("MeshPart") then 
         v.Material = "Plastic"; v.Reflectance = 0 
@@ -19,7 +22,7 @@ end
 game:GetService("Lighting").GlobalShadows = false
 game:GetService("Lighting").FogEnd = 9e9
 
--- UI E LOGO FIXA
+-- [[ UI ]]
 local function createApolloUI()
     if game.CoreGui:FindFirstChild("ApolloHubUI") then game.CoreGui.ApolloHubUI:Destroy() end
     local sg = Instance.new("ScreenGui", game.CoreGui)
@@ -32,19 +35,21 @@ local function createApolloUI()
     local logo = Instance.new("ImageLabel", frame)
     logo.Size = UDim2.new(0, 200, 0, 130)
     logo.Position = UDim2.new(0.5, -100, 0, 15)
-    logo.Image = LogoID -- Logo vindo direto do Core
+    logo.Image = LogoID
     logo.BackgroundTransparency = 1
     logo.ScaleType = Enum.ScaleType.Fit
 end
 
--- LÓGICA DE COMBATE
+-- [[ LÓGICA DE COMBATE (CORRIGIDA) ]]
 task.spawn(function()
     while true do task.wait(Config.AttackSpeed)
         if LocalPlayer.Name == Config.MainAccount then
             local char = LocalPlayer.Character
             if char and char:FindFirstChild("Communicate") then
                 char.Communicate:FireServer({["Goal"] = "LeftClick"})
-                for _, key in ipairs({Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three}) do
+                -- Usando Enums corretamente para evitar o erro de "1 is not a valid member"
+                local keys = {Enum.KeyCode.One, Enum.KeyCode.Two, Enum.KeyCode.Three}
+                for _, key in ipairs(keys) do
                     VirtualInputManager:SendKeyEvent(true, key, false, game)
                     task.wait(0.01)
                     VirtualInputManager:SendKeyEvent(false, key, false, game)
@@ -54,7 +59,7 @@ task.spawn(function()
     end
 end)
 
--- TP E AUTO-RESET
+-- [[ TP E AUTO-RESET ]]
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
